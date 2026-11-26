@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+data/
+android/build/
+android/release.keystore
+*.idsig

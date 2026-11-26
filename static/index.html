@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<title>Subtitle Studio</title>
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">SS</div>
+      <div>
+        <div class="brand-name">Subtitle Studio</div>
+        <div class="brand-sub">audio → subtitle → video</div>
+      </div>
+    </div>
+
+    <nav class="nav" id="nav">
+      <button class="nav-item active" data-view="media"><span class="nav-ico">▤</span><span>Media</span></button>
+      <button class="nav-item" data-view="transcribe"><span class="nav-ico">◎</span><span>Transkripsi</span></button>
+      <button class="nav-item" data-view="editor"><span class="nav-ico">✎</span><span>Editor Subtitle</span></button>
+      <button class="nav-item" data-view="tools"><span class="nav-ico">✂</span><span>Edit Video</span></button>
+      <button class="nav-item" data-view="settings"><span class="nav-ico">⚙</span><span>Pengaturan</span></button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <span class="status-dot" id="sideDot"></span>
+      <span id="sideStatus">Memeriksa sistem…</span>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <h1 id="viewTitle">Media</h1>
+        <p id="viewSub">Unggah audio atau video untuk mulai.</p>
+      </div>
+      <div class="topbar-right">
+        <span class="badge" id="sysBadge">Memeriksa…</span>
+      </div>
+    </header>
+
+    <!-- ============================== MEDIA ============================== -->
+    <section class="view active" id="view-media">
+      <div class="panel dropzone" id="dropzone">
+        <input type="file" id="fileInput" accept="audio/*,video/*,.mkv,.m4a,.opus,.flac,.webm" hidden>
+        <div class="drop-ico">↑</div>
+        <div class="drop-copy">
+          <strong>Letakkan file audio atau video di sini</strong>
+          <span class="muted">atau klik untuk memilih · MP3, WAV, M4A, MP4, MKV, MOV, WEBM · maks. 4 GB</span>
+        </div>
+        <button class="btn btn-primary" id="btnPickFile" type="button">Pilih file</button>
+      </div>
+
+      <div class="upload-row" id="uploadProgress" hidden>
+        <div class="bar"><span id="uploadBar"></span></div>
+        <span class="muted small" id="uploadLabel">Mengunggah…</span>
+      </div>
+
+      <div class="section-head">
+        <h2>Pustaka media</h2>
+        <span class="muted small" id="mediaCount">0 file</span>
+      </div>
+      <div class="media-grid" id="mediaGrid"></div>
+      <div class="empty" id="mediaEmpty">
+        <div class="empty-ico">▤</div>
+        <strong>Belum ada media</strong>
+        <span>Unggah rekaman rapat, wawancara, podcast, atau video apa pun.</span>
+      </div>
+    </section>
+
+    <!-- ============================ TRANSKRIPSI ========================== -->
+    <section class="view" id="view-transcribe">
+      <div class="panel">
+        <div class="grid-2">
+          <label class="field">
+            <span class="label">Media</span>
+            <select id="trMediaSelect"></select>
+          </label>
+          <label class="field">
+            <span class="label">Bahasa audio</span>
+            <select id="trLanguage"></select>
+          </label>
+        </div>
+
+        <div class="field">
+          <span class="label">Mesin transkripsi</span>
+          <div class="segmented" id="trEngine">
+            <button type="button" data-engine="offline" class="active">Offline · whisper.cpp</button>
+            <button type="button" data-engine="groq">Groq API</button>
+            <button type="button" data-engine="openai">OpenAI API</button>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <label class="field" id="trModelWrap">
+            <span class="label">Model offline</span>
+            <select id="trModel"></select>
+          </label>
+          <div class="hint" id="trOnlineNote" hidden></div>
+        </div>
+
+        <div class="row-between wrap">
+          <div class="muted small" id="trCurrent">Belum ada media dipilih.</div>
+          <button class="btn btn-primary" id="btnTranscribe" type="button">Mulai transkripsi</button>
+        </div>
+      </div>
+
+      <div class="panel job-status" id="trStatus" hidden>
+        <div class="row-between">
+          <strong id="trStatusText">Menyiapkan…</strong>
+          <span class="mono small" id="trStatusPct">0%</span>
+        </div>
+        <div class="bar"><span id="trStatusBar"></span></div>
+        <div class="muted small" id="trStatusMsg"></div>
+      </div>
+
+      <div class="section-head">
+        <h2>Transkrip tersimpan</h2>
+        <span class="muted small" id="transcriptCount"></span>
+      </div>
+      <div class="list" id="transcriptList"></div>
+    </section>
+
+    <!-- ============================== EDITOR ============================= -->
+    <section class="view" id="view-editor">
+      <div class="panel player-panel">
+        <div class="row-between">
+          <div>
+            <strong id="edMediaName">Belum ada media</strong>
+            <div class="muted small" id="edMediaMeta"></div>
+          </div>
+          <span class="badge warn" id="edDirty" hidden>Belum disimpan</span>
+        </div>
+        <div id="edPlayerWrap">
+          <video id="edVideo" controls playsinline hidden></video>
+          <audio id="edAudio" controls hidden></audio>
+          <div class="player-empty" id="edPlayerEmpty">Pilih transkrip untuk mulai mengedit.</div>
+        </div>
+      </div>
+
+      <div class="panel" id="edToolbar" hidden>
+        <div class="row-wrap">
+          <select id="edTranscriptSelect" class="grow"></select>
+          <button class="btn btn-primary btn-sm" id="btnSaveTranscript" type="button">Simpan</button>
+          <button class="btn btn-sm" data-export="srt" type="button">SRT</button>
+          <button class="btn btn-sm" data-export="vtt" type="button">VTT</button>
+          <button class="btn btn-sm" data-export="txt" type="button">TXT</button>
+        </div>
+        <div class="row-wrap toolbar-gap">
+          <span class="muted small">Geser semua</span>
+          <button class="btn btn-sm" data-shift="-1" type="button">−1 s</button>
+          <button class="btn btn-sm" data-shift="-0.1" type="button">−0,1 s</button>
+          <button class="btn btn-sm" data-shift="0.1" type="button">+0,1 s</button>
+          <button class="btn btn-sm" data-shift="1" type="button">+1 s</button>
+          <span class="spacer"></span>
+          <button class="btn btn-sm" id="btnAddSegment" type="button">+ Segmen</button>
+          <button class="btn btn-sm" id="btnSplitSegment" type="button">✂ Split di pemutar</button>
+        </div>
+        <div class="muted small" id="edStats"></div>
+      </div>
+
+      <div class="segments" id="edSegments"></div>
+      <div class="empty" id="edEmpty">
+        <div class="empty-ico">✎</div>
+        <strong>Belum ada transkrip terbuka</strong>
+        <span>Pilih transkrip dari daftar, atau buat transkripsi baru dari tab Transkripsi.</span>
+        <button class="btn" type="button" id="btnGoTranscribe">Buat transkripsi</button>
+      </div>
+    </section>
+
+    <!-- ============================ EDIT VIDEO =========================== -->
+    <section class="view" id="view-tools">
+      <div class="panel">
+        <div class="tools-top">
+          <label class="field">
+            <span class="label">Media</span>
+            <select id="vtMediaSelect"></select>
+          </label>
+          <div class="vt-preview">
+            <video id="vtVideo" controls playsinline hidden></video>
+            <audio id="vtAudio" controls hidden></audio>
+            <div class="player-empty small" id="vtPlayerEmpty">Pilih media.</div>
+          </div>
+        </div>
+
+        <div class="tabs" id="toolTabs">
+          <button type="button" data-tool="trim" class="active">Potong</button>
+          <button type="button" data-tool="burn">Subtitle</button>
+          <button type="button" data-tool="concat">Gabung</button>
+          <button type="button" data-tool="compress">Kompres</button>
+          <button type="button" data-tool="audio">Audio</button>
+        </div>
+
+        <div class="tool-panel" id="tool-trim">
+          <div class="grid-3">
+            <label class="field"><span class="label">Mulai</span><input id="trimStart" class="time-input" value="00:00:00,000" spellcheck="false"></label>
+            <label class="field"><span class="label">Akhir</span><input id="trimEnd" class="time-input" value="00:00:00,000" spellcheck="false"></label>
+            <label class="field"><span class="label">Mode</span>
+              <select id="trimMode">
+                <option value="reencode">Akurat · encode ulang</option>
+                <option value="copy">Cepat · tanpa encode</option>
+              </select>
+            </label>
+          </div>
+          <div class="row-wrap">
+            <button class="btn btn-sm" id="trimSetStart" type="button">Set mulai dari pemutar</button>
+            <button class="btn btn-sm" id="trimSetEnd" type="button">Set akhir dari pemutar</button>
+            <span class="spacer"></span>
+            <button class="btn btn-primary" id="btnTrim" type="button">Potong</button>
+          </div>
+          <div class="muted small" id="trimInfo"></div>
+        </div>
+
+        <div class="tool-panel" id="tool-burn" hidden>
+          <div class="grid-2">
+            <label class="field"><span class="label">Transkrip</span><select id="burnTranscript"></select></label>
+            <label class="field"><span class="label">Posisi</span>
+              <select id="burnPos">
+                <option value="bottom">Bawah</option>
+                <option value="middle">Tengah</option>
+                <option value="top">Atas</option>
+              </select>
+            </label>
+          </div>
+          <div class="grid-3">
+            <label class="field"><span class="label">Ukuran font (px)</span><input id="burnFont" type="number" min="0" max="200" placeholder="Otomatis"></label>
+            <label class="field"><span class="label">Warna</span>
+              <select id="burnColor">
+                <option value="white">Putih</option>
+                <option value="yellow">Kuning</option>
+                <option value="cyan">Cyan</option>
+                <option value="green">Hijau</option>
+              </select>
+            </label>
+            <label class="field"><span class="label">Margin vertikal (px)</span><input id="burnMargin" type="number" min="0" max="500" placeholder="Otomatis"></label>
+          </div>
+          <div class="grid-2">
+            <label class="field"><span class="label">Outline (px)</span><input id="burnOutline" type="number" min="0" max="20" placeholder="Otomatis"></label>
+            <label class="check"><input type="checkbox" id="burnBold" checked> Teks tebal</label>
+          </div>
+          <div class="row-between wrap">
+            <div class="muted small" id="burnNote"></div>
+            <button class="btn btn-primary" id="btnBurn" type="button">Tempel subtitle ke video</button>
+          </div>
+        </div>
+
+        <div class="tool-panel" id="tool-concat" hidden>
+          <p class="muted small">Centang video sesuai urutan yang diinginkan. Video akan dinormalisasi ke resolusi yang sama.</p>
+          <div class="check-list" id="concatList"></div>
+          <div class="grid-2">
+            <label class="field"><span class="label">Resolusi</span>
+              <select id="concatRes">
+                <option value="auto">Ikut video pertama</option>
+                <option value="1280x720">720p · 1280×720</option>
+                <option value="1920x1080">1080p · 1920×1080</option>
+                <option value="1080x1920">Vertikal · 1080×1920</option>
+              </select>
+            </label>
+            <label class="field"><span class="label">FPS</span>
+              <select id="concatFps">
+                <option value="30">30</option>
+                <option value="25">25</option>
+                <option value="24">24</option>
+                <option value="60">60</option>
+              </select>
+            </label>
+          </div>
+          <button class="btn btn-primary" id="btnConcat" type="button">Gabung video</button>
+        </div>
+
+        <div class="tool-panel" id="tool-compress" hidden>
+          <div class="grid-2">
+            <label class="field"><span class="label">Lebar (px)</span><input id="compWidth" type="number" min="0" max="7680" placeholder="Otomatis"></label>
+            <label class="field"><span class="label">Preset</span>
+              <select id="compPreset">
+                <option value="ultrafast">Ultrafast · paling cepat</option>
+                <option value="veryfast" selected>Veryfast · seimbang</option>
+                <option value="medium">Medium · lebih kecil</option>
+                <option value="slow">Slow · paling kecil</option>
+              </select>
+            </label>
+          </div>
+          <label class="field">
+            <span class="label">Kualitas (CRF) · <span id="compCrfVal">23</span></span>
+            <input id="compCrf" type="range" min="16" max="32" value="23">
+            <span class="muted small">Angka kecil = kualitas lebih tinggi dan file lebih besar.</span>
+          </label>
+          <label class="field"><span class="label">FPS (opsional)</span><input id="compFps" type="number" min="0" max="60" placeholder="Tetap"></label>
+          <button class="btn btn-primary" id="btnCompress" type="button">Kompres / resize</button>
+        </div>
+
+        <div class="tool-panel" id="tool-audio" hidden>
+          <div class="grid-2">
+            <label class="field"><span class="label">Format</span>
+              <select id="audioFormat">
+                <option value="mp3">MP3 · 192 kbps</option>
+                <option value="wav">WAV · 44,1 kHz stereo</option>
+                <option value="m4a">M4A · AAC 192 kbps</option>
+              </select>
+            </label>
+            <div class="field align-end">
+              <button class="btn btn-primary" id="btnExtract" type="button">Ekstrak audio</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <h2>Hasil render</h2>
+        <button class="btn btn-sm" id="btnRefreshOutputs" type="button">Muat ulang</button>
+      </div>
+      <div class="list" id="outputsList"></div>
+    </section>
+
+    <!-- ============================= PENGATURAN ========================== -->
+    <section class="view" id="view-settings">
+      <div class="panel">
+        <h2>Transkripsi</h2>
+        <div class="grid-2">
+          <label class="field"><span class="label">Mesin default</span>
+            <select id="setEngine">
+              <option value="offline">Offline · whisper.cpp</option>
+              <option value="groq">Groq API</option>
+              <option value="openai">OpenAI API</option>
+            </select>
+          </label>
+          <label class="field"><span class="label">Bahasa default</span><select id="setLanguage"></select></label>
+          <label class="field"><span class="label">Thread CPU</span>
+            <select id="setThreads">
+              <option>2</option><option>3</option><option>4</option><option>5</option>
+              <option>6</option><option>8</option><option>10</option><option>12</option>
+            </select>
+          </label>
+          <label class="field"><span class="label">Model offline aktif</span><select id="setModel"></select></label>
+        </div>
+        <button class="btn btn-primary" id="btnSaveSettings" type="button">Simpan pengaturan</button>
+      </div>
+
+      <div class="panel">
+        <h2>API key online</h2>
+        <div class="grid-2">
+          <label class="field">
+            <span class="label">Groq API key</span>
+            <input id="setGroqKey" type="password" autocomplete="off" spellcheck="false" placeholder="gsk_…">
+            <span class="muted small" id="groqState"></span>
+          </label>
+          <label class="field">
+            <span class="label">OpenAI API key</span>
+            <input id="setOpenaiKey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-…">
+            <span class="muted small" id="openaiState"></span>
+          </label>
+        </div>
+        <p class="muted small">Kunci hanya disimpan di perangkat ini (<code>data/settings.json</code>, permission 600) dan dikirim langsung ke penyedia API. Kosongkan untuk mempertahankan kunci lama.</p>
+      </div>
+
+      <div class="panel">
+        <div class="row-between">
+          <h2>Model Whisper</h2>
+          <button class="btn btn-sm" id="btnRefreshModels" type="button">Muat ulang</button>
+        </div>
+        <div class="model-list" id="modelList"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Sistem</h2>
+        <div class="sys-grid" id="sysInfo"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="job-dock" id="jobDock" hidden>
+  <div class="job-dock-head">
+    <span class="job-dot"></span>
+    <strong id="jobDockTitle">Job</strong>
+    <span class="mono small" id="jobDockPct"></span>
+    <button class="icon-btn" id="jobDockCancel" type="button" title="Batalkan">×</button>
+  </div>
+  <div class="bar"><span id="jobDockBar"></span></div>
+  <div class="muted small" id="jobDockMsg"></div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

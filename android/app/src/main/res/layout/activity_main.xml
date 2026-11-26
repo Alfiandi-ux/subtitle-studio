@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/window_bg">
+
+    <WebView
+        android:id="@+id/webView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/splashLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="32dp"
+        android:background="@color/window_bg">
+
+        <ImageView
+            android:id="@+id/imgLogo"
+            android:layout_width="84dp"
+            android:layout_height="84dp"
+            android:src="@mipmap/ic_launcher"
+            android:contentDescription="Subtitle Studio Logo" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/loading_title"
+            android:textColor="@color/text_main"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="audio → subtitle → video"
+            android:textColor="@color/accent"
+            android:textSize="13sp" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginTop="32dp" />
+
+        <TextView
+            android:id="@+id/txtStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:text="@string/loading_msg"
+            android:textColor="@color/text_main"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/txtSubStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:text="@string/loading_sub"
+            android:textColor="@color/text_muted"
+            android:textSize="12sp" />
+
+        <LinearLayout
+            android:id="@+id/btnContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <Button
+                android:id="@+id/btnRetry"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/btn_retry"
+                android:textColor="@color/text_main" />
+
+            <Button
+                android:id="@+id/btnChangeServer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="@string/btn_change_server"
+                android:textColor="@color/text_main" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>
